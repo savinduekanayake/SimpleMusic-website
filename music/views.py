@@ -36,9 +36,9 @@ class AlbumDelete(DeleteView):
 
 class UserFormView(View):
     form_class=UserForm
-    template_name = '/music/registration_form.html'
+    template_name = 'music/registration_form.html'
 
-# Display blank form
+    # Display blank form
     def get(self,request):
         form = self.form_class(None)
         return render(request,self.template_name,{'form':form})
@@ -49,13 +49,26 @@ class UserFormView(View):
         if form.is_valid():
             user = form.save(commit=False)
         
-        # cleaned (nomalized) Data
-        username = form.cleaned_data['username']
-        password = form.cleaned_data['password']
+            # cleaned (nomalized) Data
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
 
-        # in database password is hash, need to hash and save
-        user.set_password(password)
-        user.save()
+            # in database password is hash, need to hash and save
+            user.set_password(password)
+            user.save()
+
+            # return User object if credential are correct
+            user = authenticate(username=username, password=password)
+
+            if user is not None:
+
+                if user.is_active:
+                    login(request,user)
+                    return redirect('music:index')
+
+        return render(request,self.template_name,{'form':form})
+
+                    
         
 
 
